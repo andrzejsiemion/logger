@@ -25,7 +25,6 @@ logger.add(
 
 logger.info("Starting DHT logger...")  # Debugging message
 
-# ENVS
 LOG_INTERVAL = int(os.getenv("LOG_INTERVAL", 60)) # Default 60 seconds if not set
 DHT_PIN = os.getenv("DHT_PIN", "D4")  # Default to D4 if not set
 DHT_RETRIES = int(os.getenv("DHT_RETRIES", 3)) # Default 3 retries if not set
