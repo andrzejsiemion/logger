@@ -9,6 +9,15 @@ import influxdb_client
 from influxdb_client.client.write_api import SYNCHRONOUS
 from loguru import logger
 
+# ENVS
+LOG_INTERVAL = int(os.getenv("LOG_INTERVAL", 60)) # Default 60 seconds if not set
+DHT_PIN = os.getenv("DHT_PIN", "D4")  # Default to D4 if not set
+DHT_RETRIES = int(os.getenv("DHT_RETRIES", 3)) # Default 3 retries if not set
+
+DHT_SENSOR_NAME = os.getenv("DHT_SENSOR_NAME", f"sensor_{DHT_PIN}")
+DHT_SENSOR_TEMP_CORRECTION = os.getenv("DHT_SENSOR_TEMP_CORRECTION" ,0) # Default 0 degrees
+DHT_SENSOR_HUM_CORRECTION = os.getenv("DHT_SENSOR_HUM_CORRECTION" ,0)
+
 logger.remove() # Remove default Loguru Handler
 logger.add(
     sys.stdout, 
@@ -17,7 +26,7 @@ logger.add(
     )
 
 logger.add(
-    "/app/logs/logger.log", 
+    "/app/logs/logger_{DHT_SENSOR_NAME}.log", 
     format="[{time:YYYY-MM-DD HH:mm:ss}] {level}: {message}",
     level="INFO", 
     rotation="10MB"
@@ -25,14 +34,24 @@ logger.add(
 
 logger.info("Starting DHT logger...")  # Debugging message
 
-LOG_INTERVAL = int(os.getenv("LOG_INTERVAL", 60)) # Default 60 seconds if not set
-DHT_PIN = os.getenv("DHT_PIN", "D4")  # Default to D4 if not set
-DHT_RETRIES = int(os.getenv("DHT_RETRIES", 3)) # Default 3 retries if not set
-DHT_SENSOR_NAME = os.getenv("DHT_SENSOR_NAME", f"sensor_{DHT_PIN}")
+try:
+    temp_correction = float(DHT_SENSOR_TEMP_CORRECTION)
+except (ValueError, TypeError):
+    logger.error(f"DHT_SENSOR_TEMP_CORRECTION value can not be set to float. Set to 0.")
+    temp_correction = 0
+try:
+    hum_correction = float(DHT_SENSOR_HUM_CORRECTION)
+except (ValueError, TypeError):
+    logger.error(f"DHT_SENSOR_HUM_CORRECTION value can not be set to float. Set to 0.")
+    hum_correction = 0
 
 logger.info(f"Using DHT_PIN: {DHT_PIN}")  # Debugging message
 logger.info(f"Logging interval: {LOG_INTERVAL} seconds")  # Debugging message
 logger.info(f"Number of retries for sensor read: {DHT_RETRIES}")
+if DHT_SENSOR_TEMP_CORRECTION != 0:
+    logger.info(f"Correction of temperature set to: {DHT_SENSOR_TEMP_CORRECTION}")
+if DHT_SENSOR_HUM_CORRECTION != 0:
+    logger.info(f"Correction of humidity set to: {DHT_SENSOR_HUM_CORRECTION}")
 
 INFLUXDB_URL = os.getenv("INFLUXDB_URL", "http://influxdb:8086") 
 INFLUXDB_TOKEN = os.getenv("INFLUXDB_TOKEN", "my_secret_token")
@@ -76,7 +95,6 @@ except Exception as e:
     logger.error(f"Failed to connect to InfluxDB: {e}")
     influx_client = None # Prevent further failures
 
-logger.info("Ensuring CSV file exists...")
 # Function to get today's CSV filename
 def get_csv_filename():
     return os.path.join('/app/data', DHT_SENSOR_NAME, datetime.now().strftime("%Y-%m-%d") + ".csv")
@@ -110,10 +128,10 @@ def log_temperature():
             if humidity is not None and temperature is not None:
                 break  # Valid reading, exit loop
 
-            logger.warning(f"Attempt {attempt}/{DHT_RETRIES}: Invalid sensor reading. Retrying...")
+            logger.warning(f"Attempt {attempt}/{DHT_RETRIES}: Invalid sensor reading, retrying...")
             time.sleep(2)  # Wait before retrying
         except RuntimeError as error:
-            logger.warning(f"Attempt {attempt}/{DHT_RETRIES}: Sensor error: {error} Retrying...")
+            logger.warning(f"Attempt {attempt}/{DHT_RETRIES}: Sensor error: {error}, retrying...")
             time.sleep(2)  # Wait before retrying
 
     if temperature is None or humidity is None:
@@ -123,7 +141,11 @@ def log_temperature():
     # Read time
     now = datetime.now()
     now_db = now.isoformat() + "Z" # convert date to ISO format for InfluxDB
-
+    
+    # set correction
+    temperature = round(temperature + temp_correction, 1)
+    humidity = round(humidity + hum_correction, 1)
+    
     logger.info(f"Writing to CSV: Temp={temperature}°C, Humidity={humidity}%, Timestamp={now}")
 
     try:
