@@ -62,7 +62,7 @@ docker run -d --name logger \
 | Tag      | Description                            |
 | -------- | -------------------------------------- |
 | `latest` | Latest stable release                  |
-| `0.0.5`  | Specific version (replace with actual) |
+| `0.0.7`  | Added temperature fine adjustments |
 
 Check all available versions [here](https://github.com/andrzejsiemion/logger/pkgs/container/logger).
 
