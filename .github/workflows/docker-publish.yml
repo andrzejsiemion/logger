@@ -5,7 +5,7 @@ on:
     branches:
       - main
     tags:
-      - "v*.*.*"  # tags like v0.0.1
+      - "[0-9]+.[0-9]+.[0-9]+"  # tags like 0.0.1
 
 jobs:
   build-and-push:
@@ -19,7 +19,7 @@ jobs:
         id: version
         run: |
           if [[ "${GITHUB_REF}" == refs/tags/* ]]; then
-            echo "VERSION=${GITHUB_REF#refs/tags/v}" >> $GITHUB_ENV
+            echo "VERSION=${GITHUB_REF#refs/tags/}" >> $GITHUB_ENV
           else
             echo "VERSION=latest" >> $GITHUB_ENV
           fi
