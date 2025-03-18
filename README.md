@@ -1,5 +1,9 @@
 # DHT Sensor Logger - Docker Image
 
+## Disclaimer
+
+This project is complete overengineering – although it is fully functional, it was more about learning Docker and GitHub than delivering optimal value.
+
 ## Overview
 
 This Docker image logs temperature and humidity data from a DHT22 like sensor and stores it in a CSV file and InfluxDB.
