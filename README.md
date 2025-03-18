@@ -28,7 +28,7 @@ docker pull ghcr.io/andrzejsiemion/logger:latest
 Or pull a specific version:
 
 ```sh
-docker pull ghcr.io/andrzejsiemion/logger:0.0.3
+docker pull ghcr.io/andrzejsiemion/logger:0.0.7
 ```
 
 ### Run the Container
