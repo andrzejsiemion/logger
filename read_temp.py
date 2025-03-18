@@ -25,8 +25,10 @@ logger.add(
     level="INFO"
     )
 
+log_file_path = "/app/logs/logger_{sensor}.log".format(sensor=DHT_SENSOR_NAME)
+
 logger.add(
-    "/app/logs/logger_{DHT_SENSOR_NAME}.log", 
+    log_file_path, 
     format="[{time:YYYY-MM-DD HH:mm:ss}] {level}: {message}",
     level="INFO", 
     rotation="10MB"
