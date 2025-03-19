@@ -1,18 +1,16 @@
-name: Build Docker Image (Test Only)
+name: Build and Publish Docker Image
 
 on:
   push:
     branches-ignore:
       - "main"  # Exclude main branch
-    tags:
-      - "[0-9]+.[0-9]+.[0-9]+"  # Tags like 0.0.1
     paths-ignore:
       - "README.md"
       - "LICENSE"
       - ".github/workflows/**"
 
 jobs:
-  build-only:
+  build-and-push:
     runs-on: ubuntu-latest
 
     steps:
@@ -25,23 +23,30 @@ jobs:
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
 
-      - name: Extract Tag Version
+      - name: Extract Branch or Tag Name
         id: version
         run: |
           if [[ "${GITHUB_REF}" == refs/tags/* ]]; then
-            echo "VERSION=${GITHUB_REF#refs/tags/}" >> $GITHUB_ENV
+            VERSION="${GITHUB_REF#refs/tags/}"
           else
-            echo "VERSION=latest" >> $GITHUB_ENV
+            VERSION="${GITHUB_REF#refs/heads/}"
           fi
+          echo "VERSION=${VERSION}" >> $GITHUB_ENV
+          echo "Docker tag will be: $VERSION"
 
-      - name: Build Docker Image (No Push)
+      - name: Log in to GitHub Container Registry (GHCR)
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GH_PAT }}
+
+      - name: Build and Push Docker Image
         uses: docker/build-push-action@v5
         with:
           context: .
           file: ./Dockerfile
-          push: false  # Prevent pushing to registry
-          load: false  # Avoid loading the image locally (useful for CI)
+          push: true
           platforms: linux/amd64,linux/arm64
           tags: |
             ghcr.io/${{ github.repository }}:${{ env.VERSION }}  
-            ghcr.io/${{ github.repository }}:latest  
