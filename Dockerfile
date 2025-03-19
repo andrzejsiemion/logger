@@ -16,7 +16,8 @@ RUN pip install --no-cache-dir --prefix=/install \
     adafruit-blinka \
     RPi.GPIO \
     influxdb-client \
-    loguru
+    loguru \
+    lgpio
 
 # ---- Stage 2: Final runtime container ----
 FROM python:3.9-alpine
