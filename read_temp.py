@@ -18,6 +18,11 @@ DHT_SENSOR_NAME = os.getenv("DHT_SENSOR_NAME", f"sensor_{DHT_PIN}")
 DHT_SENSOR_TEMP_CORRECTION = os.getenv("DHT_SENSOR_TEMP_CORRECTION" ,0) # Default 0 degrees
 DHT_SENSOR_HUM_CORRECTION = os.getenv("DHT_SENSOR_HUM_CORRECTION" ,0)
 
+INFLUXDB_URL = os.getenv("INFLUXDB_URL", "http://influxdb:8086") 
+INFLUXDB_TOKEN = os.getenv("INFLUXDB_TOKEN", "my_secret_token")
+INFLUXDB_ORG = os.getenv("INFLUXDB_ORG", "my_org")
+INFLUXDB_BUCKET = os.getenv("INFLUXDB_BUCKET", "sensor_data")
+
 logger.remove() # Remove default Loguru Handler
 logger.add(
     sys.stdout, 
@@ -54,11 +59,6 @@ if DHT_SENSOR_TEMP_CORRECTION != 0:
     logger.info(f"Correction of temperature set to: {DHT_SENSOR_TEMP_CORRECTION}")
 if DHT_SENSOR_HUM_CORRECTION != 0:
     logger.info(f"Correction of humidity set to: {DHT_SENSOR_HUM_CORRECTION}")
-
-INFLUXDB_URL = os.getenv("INFLUXDB_URL", "http://influxdb:8086") 
-INFLUXDB_TOKEN = os.getenv("INFLUXDB_TOKEN", "my_secret_token")
-INFLUXDB_ORG = os.getenv("INFLUXDB_ORG", "my_org")
-INFLUXDB_BUCKET = os.getenv("INFLUXDB_BUCKET", "sensor_data")
 
 logger.info(f"InfluxDB url: {INFLUXDB_URL}")  # Debugging message
 logger.info(f"InfluxDB organization: {INFLUXDB_ORG}")  # Debugging message
@@ -203,4 +203,3 @@ if __name__ == "__main__":
         client.close()
         logger.info("InfluxDB connection closed.")
     logger.info("Logger stopped")
-
