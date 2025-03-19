@@ -46,3 +46,4 @@ COPY read_temp.py .
 
 # Set the default command
 ENTRYPOINT ["python3", "/app/read_temp.py"]
+
