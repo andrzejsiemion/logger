@@ -203,4 +203,3 @@ if __name__ == "__main__":
         client.close()
         logger.info("InfluxDB connection closed.")
     logger.info("Logger stopped")
-
