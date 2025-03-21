@@ -23,6 +23,9 @@ INFLUXDB_TOKEN = os.getenv("INFLUXDB_TOKEN", "my_secret_token")
 INFLUXDB_ORG = os.getenv("INFLUXDB_ORG", "my_org")
 INFLUXDB_BUCKET = os.getenv("INFLUXDB_BUCKET", "sensor_data")
 
+DISPLAY_SENSOR_LABEL = os.getenv("DISPLAY_SENSOR_LABEL", "??")
+DISPLAY_SENSOR_FILE= os.getenv("DISPLAY_SENSOR_FILE", "??")
+
 logger.remove() # Remove default Loguru Handler
 logger.add(
     sys.stdout, 
@@ -179,7 +182,21 @@ def log_temperature():
 
     except Exception as e:
         logger.error(f"Error writing to DB: {e}")
-   
+    
+    # Write to /app/display/up.txt
+    try:
+        up_display_path = "/app/display/{file}".format(file=DISPLAY_SENSOR_FILE)
+        os.makedirs(os.path.dirname(up_display_path), exist_ok=True)
+
+        line1 = f"{DISPLAY_SENSOR_LABEL} {now.strftime('%Y-%m-%d %H:%M:%S')}"
+        line2 = f"Temp: {temperature:.1f}C Hum: {humidity:.1f}%"
+
+        with open(up_display_path, "w") as f:
+            f.write(f"{line1}\n{line2}\n")
+
+        logger.info(f"Updated display file: {up_display_path}")
+    except Exception as e:
+        logger.error(f"Failed to write display file: {e}")
 
 if __name__ == "__main__":
     logger.info("Ensuring CSV file exists...")
