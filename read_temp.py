@@ -165,7 +165,7 @@ def log_temperature():
     if temperature is None or humidity is None:
         logger.error("Failed to get valid temperature or humidity data.")
         # Update display with error message
-        update_display(error_message="ERROR: CHECK SENSOR")
+        update_display(error_message="ERROR: check sensor")
         return
     
     # Read time
