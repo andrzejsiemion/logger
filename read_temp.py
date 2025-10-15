@@ -115,6 +115,29 @@ def initialize_csv():
             writer.writerow(["date", "time", "temperature", "humidity"])
     return filename
 
+def update_display(temperature=None, humidity=None, error_message=None):
+    """Update the display file with sensor data or error message"""
+    try:
+        up_display_path = "/app/display/{file}".format(file=DISPLAY_SENSOR_FILE)
+        os.makedirs(os.path.dirname(up_display_path), exist_ok=True)
+
+        now = datetime.now()
+        line1 = f"{DISPLAY_SENSOR_LABEL} {now.strftime('%Y-%m-%d %H:%M:%S')}"
+        
+        if error_message:
+            line2 = error_message
+            logger.warning(f"Display updated with error: {error_message}")
+        else:
+            line2 = f"Temp: {temperature:.1f}C Hum: {humidity:.1f}%"
+            logger.info(f"Display updated with data: Temp={temperature:.1f}C, Hum={humidity:.1f}%")
+
+        with open(up_display_path, "w") as f:
+            f.write(f"{line1}\n{line2}\n")
+
+        logger.info(f"Updated display file: {up_display_path}")
+    except Exception as e:
+        logger.error(f"Failed to write display file: {e}")
+
 def log_temperature():
     logger.info("Attempting to read sensor data...")
     
@@ -141,6 +164,8 @@ def log_temperature():
 
     if temperature is None or humidity is None:
         logger.error("Failed to get valid temperature or humidity data.")
+        # Update display with error message
+        update_display(error_message="ERROR: check sensor")
         return
     
     # Read time
@@ -183,20 +208,8 @@ def log_temperature():
     except Exception as e:
         logger.error(f"Error writing to DB: {e}")
     
-    # Write to /app/display/up.txt
-    try:
-        up_display_path = "/app/display/{file}".format(file=DISPLAY_SENSOR_FILE)
-        os.makedirs(os.path.dirname(up_display_path), exist_ok=True)
-
-        line1 = f"{DISPLAY_SENSOR_LABEL} {now.strftime('%Y-%m-%d %H:%M:%S')}"
-        line2 = f"Temp: {temperature:.1f}C Hum: {humidity:.1f}%"
-
-        with open(up_display_path, "w") as f:
-            f.write(f"{line1}\n{line2}\n")
-
-        logger.info(f"Updated display file: {up_display_path}")
-    except Exception as e:
-        logger.error(f"Failed to write display file: {e}")
+    # Update display with valid data
+    update_display(temperature=temperature, humidity=humidity)
 
 if __name__ == "__main__":
     logger.info("Ensuring CSV file exists...")
